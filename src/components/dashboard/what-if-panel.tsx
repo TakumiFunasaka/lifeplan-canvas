@@ -209,6 +209,25 @@ export function WhatIfPanel() {
             />
           </div>
 
+          {/* 現在の貯金額 */}
+          <div className="space-y-2">
+            <div className="flex justify-between items-center">
+              <Label className="text-sm">現在の貯金額</Label>
+              <span className="text-sm font-bold text-violet-600 tabular-nums">
+                {profile.currentSavings}万円
+              </span>
+            </div>
+            <Slider
+              min={0}
+              max={2000}
+              step={10}
+              value={[profile.currentSavings]}
+              onValueChange={(v) =>
+                updateProfile({ currentSavings: Array.isArray(v) ? v[0] : v })
+              }
+            />
+          </div>
+
           {/* 昇給設定 */}
           <div className="space-y-3 rounded-xl bg-gray-50 p-3">
             <p className="text-xs font-medium text-gray-700">📈 昇給カーブ</p>
