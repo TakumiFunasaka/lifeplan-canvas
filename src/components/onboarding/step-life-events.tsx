@@ -1,10 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { NumberInput } from "@/components/shared/number-input";
 import { useLifePlanStore } from "@/hooks/use-lifeplan-store";
-import { LIFE_EVENT_TEMPLATES } from "@/lib/constants";
+import { LIFE_EVENT_TEMPLATES, DEFAULT_CHILD_EDUCATION } from "@/lib/constants";
 import type { LifeEvent } from "@/lib/types";
 
 function formatCost(lump: number, annual: number) {
@@ -42,6 +42,8 @@ export function StepLifeEvents() {
         lumpCost: template.lumpCost,
         annualCost: template.annualCost,
         durationYears: template.durationYears,
+        replaceCycleYears: template.replaceCycleYears,
+        ...(template.id.startsWith("child_") ? { childEducation: { ...DEFAULT_CHILD_EDUCATION } } : {}),
       };
       addEvent(event);
     }
@@ -137,49 +139,17 @@ export function StepLifeEvents() {
       ) : (
         <div className="rounded-2xl border-2 border-violet-200 bg-violet-50/50 p-4 space-y-3 animate-in fade-in duration-200">
           <p className="text-sm font-medium text-violet-700">カスタムイベント</p>
-          <Input
+          <input
             placeholder="イベント名（例: 独立開業、留学）"
             value={customLabel}
             onChange={(e) => setCustomLabel(e.target.value)}
+            className="h-8 w-full rounded-lg border border-input bg-transparent px-2.5 py-1 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
           />
           <div className="grid grid-cols-2 gap-2">
-            <div>
-              <label className="text-[10px] text-gray-500">一時費用（万円）</label>
-              <Input
-                type="number"
-                min={0}
-                value={customLump}
-                onChange={(e) => setCustomLump(Number(e.target.value))}
-              />
-            </div>
-            <div>
-              <label className="text-[10px] text-gray-500">年齢</label>
-              <Input
-                type="number"
-                min={age}
-                max={80}
-                value={customAge}
-                onChange={(e) => setCustomAge(Number(e.target.value))}
-              />
-            </div>
-            <div>
-              <label className="text-[10px] text-gray-500">年間費用（万円）</label>
-              <Input
-                type="number"
-                min={0}
-                value={customAnnual}
-                onChange={(e) => setCustomAnnual(Number(e.target.value))}
-              />
-            </div>
-            <div>
-              <label className="text-[10px] text-gray-500">何年間？</label>
-              <Input
-                type="number"
-                min={0}
-                value={customDuration}
-                onChange={(e) => setCustomDuration(Number(e.target.value))}
-              />
-            </div>
+            <div><label className="text-[10px] text-gray-500">一時費用（万円）</label><NumberInput value={customLump} onChange={setCustomLump} /></div>
+            <div><label className="text-[10px] text-gray-500">年齢</label><NumberInput value={customAge} min={age} max={80} onChange={setCustomAge} /></div>
+            <div><label className="text-[10px] text-gray-500">年間費用（万円）</label><NumberInput value={customAnnual} onChange={setCustomAnnual} /></div>
+            <div><label className="text-[10px] text-gray-500">何年間？</label><NumberInput value={customDuration} onChange={setCustomDuration} /></div>
           </div>
           <div className="flex gap-2">
             <Button

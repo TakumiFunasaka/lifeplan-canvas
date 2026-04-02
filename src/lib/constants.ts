@@ -1,4 +1,4 @@
-import type { JobPreset, LifestylePreset, LifeEventTemplate } from "./types";
+import type { JobPreset, LifestylePreset, LifeEventTemplate, ExpenseBreakdown, ChildEducation } from "./types";
 
 export const JOB_PRESETS: JobPreset[] = [
   { id: "it_engineer", label: "ITエンジニア", emoji: "💻", startingSalary: 350, growthRate: 0.03, peakAge: 40, peakSalary: 750 },
@@ -120,6 +120,56 @@ export const RETIREMENT_AGE = 65;
 export const SIMULATION_END_AGE = 80;
 export const SELF_INVESTMENT_INCOME_BOOST = 0.01; // 自己投資で追加年1%昇給
 export const DEFAULT_INVESTMENT_RETURN = 0.05;
+
+// 教育費（年間・万円）- 文科省「子供の学習費調査」ベース
+export const EDUCATION_COSTS: Record<string, { public: number; private: number }> = {
+  preschool:  { public: 17, private: 31 },   // 幼稚園（3年間）
+  elementary: { public: 35, private: 167 },   // 小学校
+  middle:     { public: 54, private: 144 },   // 中学校
+  high:       { public: 51, private: 105 },   // 高校
+  university: { public: 115, private: 185 },  // 大学（学費+生活費）
+};
+
+// 子どもの年齢→教育段階
+export function getEducationStage(childAge: number): keyof ChildEducation | null {
+  if (childAge >= 3 && childAge < 6) return "preschool";
+  if (childAge >= 6 && childAge < 12) return "elementary";
+  if (childAge >= 12 && childAge < 15) return "middle";
+  if (childAge >= 15 && childAge < 18) return "high";
+  if (childAge >= 18 && childAge < 22) return "university";
+  return null;
+}
+
+export const DEFAULT_CHILD_EDUCATION: ChildEducation = {
+  preschool: "public",
+  elementary: "public",
+  middle: "public",
+  high: "public",
+  university: "public",
+};
+
+// 支出内訳のデフォルト（月額・万円・一人暮らし想定）
+export const DEFAULT_EXPENSE: ExpenseBreakdown = {
+  housing: 6,
+  food: 4,
+  utilities: 1.5,
+  transport: 1,
+  insurance: 0.5,
+  entertainment: 2,
+  clothing: 1,
+  misc: 1,
+};
+
+export const EXPENSE_LABELS: Record<keyof ExpenseBreakdown, { label: string; emoji: string }> = {
+  housing: { label: "家賃・住居", emoji: "🏠" },
+  food: { label: "食費", emoji: "🍽️" },
+  utilities: { label: "光熱・通信", emoji: "💡" },
+  transport: { label: "交通費", emoji: "🚃" },
+  insurance: { label: "保険", emoji: "🛡️" },
+  entertainment: { label: "交際・趣味", emoji: "🎮" },
+  clothing: { label: "衣服・美容", emoji: "👕" },
+  misc: { label: "その他", emoji: "📦" },
+};
 
 export const STEP_LABELS = [
   { title: "あなたについて", subtitle: "年齢と年収を教えて！" },

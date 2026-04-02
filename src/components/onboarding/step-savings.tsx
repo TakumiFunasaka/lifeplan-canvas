@@ -1,7 +1,7 @@
 "use client";
 
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { NumberInput } from "@/components/shared/number-input";
 import { useLifePlanStore } from "@/hooks/use-lifeplan-store";
 
 export function StepSavings() {
@@ -21,19 +21,13 @@ export function StepSavings() {
 
       <div className="space-y-2">
         <Label className="text-base font-medium">現在の貯金額</Label>
-        <div className="flex items-center gap-2">
-          <Input
-            type="number"
-            min={0}
-            step={10}
-            value={profile.currentSavings}
-            onChange={(e) =>
-              updateProfile({ currentSavings: Math.max(0, Number(e.target.value)) })
-            }
-            className="text-xl font-bold text-center"
-          />
-          <span className="text-sm text-gray-500 whitespace-nowrap">万円</span>
-        </div>
+        <NumberInput
+          value={profile.currentSavings}
+          onChange={(v) => updateProfile({ currentSavings: v })}
+          step={10}
+          suffix="万円"
+          className="text-xl"
+        />
       </div>
 
       <div className="rounded-2xl bg-amber-50 p-4 text-sm text-amber-800">

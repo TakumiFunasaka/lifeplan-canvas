@@ -2,8 +2,8 @@
 
 import { useState } from "react";
 import { Slider } from "@/components/ui/slider";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { NumberInput } from "@/components/shared/number-input";
 import { SelectableCard } from "@/components/shared/selectable-card";
 import { useLifePlanStore } from "@/hooks/use-lifeplan-store";
 import { JOB_PRESETS } from "@/lib/constants";
@@ -93,17 +93,12 @@ export function StepAgeJob() {
 
         {mode === "monthly_take_home" ? (
           <div className="space-y-2">
-            <div className="flex items-center gap-2">
-              <Input
-                type="number"
-                min={0}
-                step={1}
-                value={monthlyTakeHome}
-                onChange={(e) => handleMonthlyChange(Math.max(0, Number(e.target.value)))}
-                className="text-lg font-bold text-center"
-              />
-              <span className="text-sm text-gray-500 whitespace-nowrap">万円/月</span>
-            </div>
+            <NumberInput
+              value={monthlyTakeHome}
+              onChange={(v) => handleMonthlyChange(v)}
+              suffix="万円/月"
+              className="text-lg"
+            />
             <p className="text-xs text-gray-400">
               毎月の口座に振り込まれる金額でOK！
             </p>
@@ -113,19 +108,13 @@ export function StepAgeJob() {
           </div>
         ) : (
           <div className="space-y-2">
-            <div className="flex items-center gap-2">
-              <Input
-                type="number"
-                min={0}
-                step={10}
-                value={profile.annualIncome}
-                onChange={(e) =>
-                  updateProfile({ annualIncome: Math.max(0, Number(e.target.value)) })
-                }
-                className="text-lg font-bold text-center"
-              />
-              <span className="text-sm text-gray-500 whitespace-nowrap">万円/年</span>
-            </div>
+            <NumberInput
+              value={profile.annualIncome}
+              onChange={(v) => updateProfile({ annualIncome: v })}
+              step={10}
+              suffix="万円/年"
+              className="text-lg"
+            />
             <p className="text-xs text-gray-400">
               源泉徴収票の「支払金額」がこれ。わからなければ手取り月給で入力してね
             </p>

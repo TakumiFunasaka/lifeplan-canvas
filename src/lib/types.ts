@@ -15,10 +15,10 @@ export interface JobPreset {
   id: JobCategory;
   label: string;
   emoji: string;
-  startingSalary: number; // 万円/年
-  growthRate: number; // 年間昇給率
+  startingSalary: number;
+  growthRate: number;
   peakAge: number;
-  peakSalary: number; // 万円/年
+  peakSalary: number;
 }
 
 // --- 生活スタイル ---
@@ -28,24 +28,46 @@ export interface LifestylePreset {
   id: LifestyleType;
   label: string;
   emoji: string;
-  savingsRate: number; // 手取りに対する貯蓄率
+  savingsRate: number;
   description: string;
 }
 
+// --- 支出内訳（月額・万円） ---
+export interface ExpenseBreakdown {
+  housing: number;       // 家賃・住居費
+  food: number;          // 食費
+  utilities: number;     // 水道光熱・通信
+  transport: number;     // 交通費
+  insurance: number;     // 保険
+  entertainment: number; // 交際・趣味・娯楽
+  clothing: number;      // 衣服・美容
+  misc: number;          // その他・雑費
+}
+
 // --- ライフイベント ---
+export type EducationLevel = "public" | "private";
+
+export interface ChildEducation {
+  preschool: EducationLevel;  // 幼稚園
+  elementary: EducationLevel; // 小学校
+  middle: EducationLevel;     // 中学校
+  high: EducationLevel;       // 高校
+  university: EducationLevel; // 大学
+}
+
 export interface LifeEvent {
   id: string;
   label: string;
   emoji: string;
-  age: number; // 発生年齢
-  lumpCost: number; // 一時費用（万円）
-  annualCost: number; // 年間継続費用（万円）
-  durationYears: number; // 継続年数（0=一時のみ）
-  replaceCycleYears?: number; // 買い替えサイクル（年）。設定すると一時費用がサイクルごとに再発生
+  age: number;
+  lumpCost: number;
+  annualCost: number;
+  durationYears: number;
+  replaceCycleYears?: number;
   isCustom?: boolean;
+  childEducation?: ChildEducation; // 子どもイベント用
 }
 
-// プリセットイベントの定義（テンプレート）
 export interface LifeEventTemplate {
   id: string;
   label: string;
@@ -58,32 +80,41 @@ export interface LifeEventTemplate {
   description: string;
 }
 
+// --- 配偶者 ---
+export interface SpouseProfile {
+  enabled: boolean;
+  annualIncome: number; // 万円
+  salaryGrowth: SalaryGrowth;
+}
+
 // --- 投資プロファイル ---
 export interface InvestmentProfile {
   isInvesting: boolean;
   knowsNisa: boolean;
-  monthlyAmount: number; // 万円/月（固定額モード時）
-  expectedReturn: number; // 年利（小数: 0.05 = 5%）
-  useRatioMode: boolean; // true=手取りの%で投資, false=固定額
-  ratioPercent: number; // 手取りに対する投資割合（%表記: 10 = 10%）
+  monthlyAmount: number;
+  expectedReturn: number;
+  useRatioMode: boolean;
+  ratioPercent: number;
 }
 
 // --- 昇給設定 ---
 export interface SalaryGrowth {
-  annualRaisePercent: number; // 年間昇給率（%表記: 2 = 2%）
-  peakIncome: number; // ゴール年収（万円）
+  annualRaisePercent: number;
+  peakIncome: number;
 }
 
 // --- ユーザープロファイル ---
 export interface UserProfile {
   age: number;
   jobCategory: JobCategory;
-  annualIncome: number; // 万円（ユーザー入力）
-  currentSavings: number; // 万円
+  annualIncome: number;
+  currentSavings: number;
   lifestyle: LifestyleType;
   events: LifeEvent[];
   investment: InvestmentProfile;
   salaryGrowth: SalaryGrowth;
+  spouse: SpouseProfile;
+  expenseBreakdown: ExpenseBreakdown;
 }
 
 // --- シミュレーション出力 ---
@@ -108,5 +139,4 @@ export interface Diagnosis {
   messages: string[];
 }
 
-// --- オンボーディング ---
 export type OnboardingStep = 0 | 1 | 2 | 3 | 4;
