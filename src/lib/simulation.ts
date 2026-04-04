@@ -80,14 +80,17 @@ export function simulate(profile: UserProfile): YearlyData[] {
       : householdIncome * (1 - EFFECTIVE_TAX_RATE);
 
     // --- 基本生活費 ---
+    // 年齢とともに支出が年0.5%ずつ上がる（生活水準の自然上昇）
+    const yearsFromStart = age - profile.age;
+    const expenseGrowth = Math.pow(1.005, yearsFromStart);
+
     let baseExpense: number;
     if (age >= RETIREMENT_AGE) {
       baseExpense = takeHome * 0.85;
     } else if (useExpenseBreakdown) {
-      // 支出内訳ベース
-      baseExpense = monthlyExpense * 12;
-      // 結婚後は1.5倍（2人だけど共有部分あり）
-      if (isMarried) baseExpense *= 1.5;
+      baseExpense = monthlyExpense * 12 * expenseGrowth;
+      // 結婚後は1.8倍（2人分の生活費、ただし住居等は共有）
+      if (isMarried) baseExpense *= 1.8;
     } else {
       baseExpense = takeHome * (1 - lifestyle.savingsRate);
     }
