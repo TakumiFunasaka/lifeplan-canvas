@@ -44,6 +44,7 @@ export function StepLifeEvents() {
         durationYears: template.durationYears,
         replaceCycleYears: template.replaceCycleYears,
         ...(template.id.startsWith("child_") ? { childEducation: { ...DEFAULT_CHILD_EDUCATION } } : {}),
+        ...(template.id === "independence" ? { loan: { amount: 1000, repaymentYears: 10, interestRate: 2 } } : {}),
       };
       addEvent(event);
     }

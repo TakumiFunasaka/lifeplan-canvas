@@ -47,10 +47,26 @@ function IndependenceMilestone({
           <span className="text-gray-600">必要な自己資金</span>
           <span className="font-bold">{selfFund}万円〜</span>
         </div>
-        <div className="flex justify-between text-xs">
-          <span className="text-gray-600">公庫借入（想定）</span>
-          <span className="font-bold">1,000万円</span>
-        </div>
+        {indepEvent.loan && (
+          <>
+            <div className="flex justify-between text-xs">
+              <span className="text-gray-600">借入額</span>
+              <span className="font-bold">{indepEvent.loan.amount.toLocaleString()}万円</span>
+            </div>
+            <div className="flex justify-between text-xs">
+              <span className="text-gray-600">返済</span>
+              <span className="font-bold">
+                {(() => {
+                  const r = indepEvent.loan.interestRate / 100;
+                  const n = indepEvent.loan.repaymentYears;
+                  const a = indepEvent.loan.amount;
+                  const annual = r > 0 ? a * (r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1) : a / n;
+                  return `月${(annual / 12).toFixed(1)}万 × ${n}年`;
+                })()}
+              </span>
+            </div>
+          </>
+        )}
         <div className="flex justify-between text-xs">
           <span className="text-gray-600">{indepEvent.age}歳時点の予測資産</span>
           <span className={`font-bold ${isReady ? "text-emerald-600" : "text-orange-600"}`}>

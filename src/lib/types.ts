@@ -42,7 +42,13 @@ export interface LifeEvent {
   durationYears: number;
   replaceCycleYears?: number;
   isCustom?: boolean;
-  childEducation?: ChildEducation; // 子どもイベント用
+  childEducation?: ChildEducation;
+  // 借入モデル（独立開業等）
+  loan?: {
+    amount: number;      // 借入額（万円）
+    repaymentYears: number; // 返済期間（年）
+    interestRate: number;   // 年利（%表記: 2 = 2%）
+  };
 }
 
 export interface LifeEventTemplate {

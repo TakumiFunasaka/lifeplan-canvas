@@ -110,6 +110,51 @@ function EventEditor({
               )}
             </div>
           )}
+
+          {/* 借入設定 */}
+          {event.loan && (
+            <div className="space-y-2 rounded-lg bg-sky-50 p-2.5">
+              <p className="text-[10px] text-sky-700 font-medium">🏦 借入（公庫等）</p>
+              <div className="grid grid-cols-3 gap-2">
+                <div>
+                  <label className="text-[10px] text-gray-500">借入額（万）</label>
+                  <NumberInput value={event.loan.amount}
+                    onChange={(v) => onUpdate({ loan: { ...event.loan!, amount: v } })} />
+                </div>
+                <div>
+                  <label className="text-[10px] text-gray-500">返済期間（年）</label>
+                  <NumberInput value={event.loan.repaymentYears} min={1} max={30}
+                    onChange={(v) => onUpdate({ loan: { ...event.loan!, repaymentYears: v } })} />
+                </div>
+                <div>
+                  <label className="text-[10px] text-gray-500">金利（%）</label>
+                  <NumberInput value={event.loan.interestRate} min={0} max={10} step={0.1}
+                    onChange={(v) => onUpdate({ loan: { ...event.loan!, interestRate: v } })} />
+                </div>
+              </div>
+              {(() => {
+                const r = event.loan.interestRate / 100;
+                const n = event.loan.repaymentYears;
+                const a = event.loan.amount;
+                const annual = r > 0 ? a * (r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1) : a / n;
+                const total = annual * n;
+                return (
+                  <p className="text-[10px] text-sky-600">
+                    → 年間返済 約{Math.round(annual)}万（月{(annual / 12).toFixed(1)}万）、返済総額 約{Math.round(total)}万
+                  </p>
+                );
+              })()}
+            </div>
+          )}
+
+          {/* 借入を追加するボタン（loanがないイベント） */}
+          {!event.loan && !isChild && (
+            <button type="button"
+              onClick={() => onUpdate({ loan: { amount: 500, repaymentYears: 10, interestRate: 2 } })}
+              className="w-full rounded-lg border border-dashed border-sky-300 p-1.5 text-[10px] text-sky-500 hover:bg-sky-50">
+              + 借入を追加
+            </button>
+          )}
         </div>
       )}
     </div>
@@ -150,6 +195,7 @@ export function WhatIfPanel() {
       lumpCost: template.lumpCost, annualCost: template.annualCost,
       durationYears: template.durationYears, replaceCycleYears: template.replaceCycleYears,
       ...(template.id.startsWith("child_") ? { childEducation: { ...DEFAULT_CHILD_EDUCATION } } : {}),
+      ...(template.id === "independence" ? { loan: { amount: 1000, repaymentYears: 10, interestRate: 2 } } : {}),
     };
     addEvent(event);
   };

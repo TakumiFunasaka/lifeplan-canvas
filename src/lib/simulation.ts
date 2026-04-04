@@ -119,6 +119,26 @@ export function simulate(profile: UserProfile): YearlyData[] {
         continue;
       }
 
+      // 借入モデル: 借入年に資金が入り（一時費用と相殺）、返済が発生
+      if (event.loan && event.loan.amount > 0) {
+        if (age === event.age) {
+          // 借入額が手元に入る（プラス）→ 一時費用（自己資金）と相殺
+          eventCost += event.lumpCost - event.loan.amount; // 自己資金100 - 借入1000 = -900（手元に残る）
+          yearEventLabels.push(`${event.emoji}${event.label}`);
+        }
+        // 返済（元利均等の年間返済額）
+        const r = event.loan.interestRate / 100;
+        const n = event.loan.repaymentYears;
+        const annualRepay = r > 0
+          ? event.loan.amount * (r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1)
+          : event.loan.amount / n;
+        if (age >= event.age && age < event.age + n) {
+          eventCost += annualRepay;
+          if (age === event.age) yearEventLabels.push("📋返済開始");
+        }
+        continue;
+      }
+
       // 一時費用
       if (age === event.age && event.lumpCost > 0) {
         eventCost += event.lumpCost;
