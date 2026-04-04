@@ -5,8 +5,7 @@ import { DEFAULT_EXPENSE } from "@/lib/constants";
 
 const defaultProfile: UserProfile = {
   age: 22,
-  jobCategory: "other",
-  annualIncome: 300,
+  annualIncome: 250,
   currentSavings: 50,
   lifestyle: "normal",
   events: [],
@@ -102,12 +101,14 @@ export const useLifePlanStore = create<LifePlanStore>()(
     }),
     {
       name: "lifeplan-store",
-      version: 4,
+      version: 5,
       migrate: (persisted: unknown) => {
         const state = persisted as Record<string, unknown>;
         const profile = (state?.profile ?? {}) as Record<string, unknown>;
         if (!Array.isArray(profile.events)) profile.events = [];
-        if (!profile.annualIncome) profile.annualIncome = 300;
+        if (!profile.annualIncome) profile.annualIncome = 250;
+        // Remove legacy jobCategory field if present
+        delete (profile as Record<string, unknown>).jobCategory;
         if (!profile.salaryGrowth) profile.salaryGrowth = { annualRaisePercent: 2, peakIncome: 550 };
         if (!profile.spouse) profile.spouse = { enabled: false, annualIncome: 300, salaryGrowth: { annualRaisePercent: 2, peakIncome: 500 } };
         if (!profile.expenseBreakdown) profile.expenseBreakdown = { ...DEFAULT_EXPENSE };

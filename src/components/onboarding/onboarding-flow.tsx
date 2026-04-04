@@ -28,7 +28,7 @@ export function OnboardingFlow() {
         {/* Header */}
         <div className="text-center space-y-1">
           <h1 className="text-xl font-bold text-violet-800">
-            LifePlan Canvas
+            理容師のライフプラン
           </h1>
           <StepIndicator current={currentStep} total={5} />
         </div>

@@ -1,26 +1,23 @@
-import type { JobPreset, LifestylePreset, LifeEventTemplate, ExpenseBreakdown, ChildEducation } from "./types";
-
-export const JOB_PRESETS: JobPreset[] = [
-  { id: "it_engineer", label: "ITエンジニア", emoji: "💻", startingSalary: 350, growthRate: 0.03, peakAge: 40, peakSalary: 750 },
-  { id: "sales", label: "営業", emoji: "🤝", startingSalary: 320, growthRate: 0.025, peakAge: 45, peakSalary: 650 },
-  { id: "office_work", label: "事務・管理", emoji: "📋", startingSalary: 300, growthRate: 0.02, peakAge: 50, peakSalary: 550 },
-  { id: "consulting", label: "コンサル", emoji: "🧠", startingSalary: 400, growthRate: 0.04, peakAge: 38, peakSalary: 900 },
-  { id: "public_servant", label: "公務員", emoji: "🏛️", startingSalary: 300, growthRate: 0.02, peakAge: 55, peakSalary: 650 },
-  { id: "medical", label: "医療系", emoji: "🏥", startingSalary: 350, growthRate: 0.025, peakAge: 45, peakSalary: 700 },
-  { id: "creative", label: "クリエイティブ", emoji: "🎨", startingSalary: 280, growthRate: 0.02, peakAge: 40, peakSalary: 550 },
-  { id: "barber", label: "理容師・美容師", emoji: "✂️", startingSalary: 250, growthRate: 0.02, peakAge: 35, peakSalary: 400 },
-  { id: "service", label: "サービス・接客", emoji: "🍽️", startingSalary: 260, growthRate: 0.015, peakAge: 45, peakSalary: 420 },
-  { id: "other", label: "その他", emoji: "📌", startingSalary: 300, growthRate: 0.02, peakAge: 45, peakSalary: 550 },
-];
+import type { LifestylePreset, LifeEventTemplate, ExpenseBreakdown, ChildEducation } from "./types";
 
 export const LIFESTYLE_PRESETS: LifestylePreset[] = [
-  { id: "saver", label: "節約家", emoji: "🐿️", savingsRate: 0.3, description: "自炊中心、サブスクは厳選、飲み会も控えめ" },
-  { id: "normal", label: "ふつう", emoji: "🙂", savingsRate: 0.15, description: "たまに外食、推しには課金、でも貯金も意識" },
-  { id: "spender", label: "楽しむ派", emoji: "🎉", savingsRate: 0.05, description: "人生は一度きり！旅行もグルメも我慢しない" },
+  { id: "saver", label: "節約家", emoji: "🐿️", savingsRate: 0.3, description: "自炊中心、サブスクは厳選、飲み会も月1回" },
+  { id: "normal", label: "ふつう", emoji: "🙂", savingsRate: 0.15, description: "たまに外食、推しには課金、でも開業資金も意識" },
+  { id: "spender", label: "楽しむ派", emoji: "🎉", savingsRate: 0.05, description: "休みの日は全力で楽しむ！旅行もグルメも我慢しない" },
 ];
 
-// ライフイベントテンプレート（現実的なコスト感）
+// ライフイベントテンプレート（理容師向け・現実的なコスト感）
 export const LIFE_EVENT_TEMPLATES: LifeEventTemplate[] = [
+  {
+    id: "independence",
+    label: "独立・開業",
+    emoji: "🏪",
+    defaultAge: 30,
+    lumpCost: 100, // 自己資金（公庫借入とは別に必要な手持ち）
+    annualCost: 85, // 借入返済 年85万（公庫1000万・10年返済・金利2%相当）
+    durationYears: 10,
+    description: "自己資金100万+公庫借入返済 年85万×10年。内装・設備・運転資金込み",
+  },
   {
     id: "marriage",
     label: "結婚",
@@ -30,16 +27,6 @@ export const LIFE_EVENT_TEMPLATES: LifeEventTemplate[] = [
     annualCost: 0,
     durationYears: 0,
     description: "挙式・披露宴・新生活・指輪等で平均470万",
-  },
-  {
-    id: "home",
-    label: "マイホーム",
-    emoji: "🏠",
-    defaultAge: 35,
-    lumpCost: 600, // 頭金・諸費用（物件4000万の15%）
-    annualCost: 120, // ローン月10万×12ヶ月（3400万借入・35年・金利1.5%）
-    durationYears: 35,
-    description: "頭金600万+ローン月10万×35年",
   },
   {
     id: "child_1",
@@ -62,6 +49,37 @@ export const LIFE_EVENT_TEMPLATES: LifeEventTemplate[] = [
     description: "2人目も同程度。きょうだい割引はほぼない…",
   },
   {
+    id: "car",
+    label: "車（維持+買替え込み）",
+    emoji: "🚗",
+    defaultAge: 25,
+    lumpCost: 250, // 初回購入
+    annualCost: 45, // JAF調査: 保険7万+税金5万+車検積立8万+ガス12万+駐車場13万≒45万/年
+    durationYears: 45,
+    replaceCycleYears: 8, // 8年ごとに250万で買い替え
+    description: "購入250万+維持費年45万、8年ごとに買い替え",
+  },
+  {
+    id: "contest",
+    label: "コンテスト挑戦",
+    emoji: "🏆",
+    defaultAge: 22,
+    lumpCost: 0,
+    annualCost: 10, // 出場費・練習費・ウィッグ代等
+    durationYears: 5,
+    description: "技術コンテスト出場費・練習費・ウィッグ代で年10万×5年",
+  },
+  {
+    id: "skill_investment",
+    label: "技術講習・セミナー",
+    emoji: "✂️",
+    defaultAge: 22,
+    lumpCost: 0,
+    annualCost: 15, // カット講習、カラー講習等
+    durationYears: 10,
+    description: "カット講習・カラー講習等で年15万×10年→技術力UPで指名増",
+  },
+  {
     id: "overseas_travel",
     label: "海外旅行（年1）",
     emoji: "✈️",
@@ -82,35 +100,14 @@ export const LIFE_EVENT_TEMPLATES: LifeEventTemplate[] = [
     description: "ライブ・グッズ・遠征で年15万くらい",
   },
   {
-    id: "car",
-    label: "車（維持+買替え込み）",
-    emoji: "🚗",
-    defaultAge: 25,
-    lumpCost: 250, // 初回購入
-    annualCost: 45, // JAF調査: 保険7万+税金5万+車検積立8万+ガス12万+駐車場13万≒45万/年
-    durationYears: 45,
-    replaceCycleYears: 8, // 8年ごとに250万で買い替え
-    description: "購入250万+維持費年45万、8年ごとに買い替え",
-  },
-  {
-    id: "skill_investment",
-    label: "自己投資",
-    emoji: "📚",
-    defaultAge: 23,
-    lumpCost: 0,
-    annualCost: 20, // スクール・資格・書籍
-    durationYears: 10,
-    description: "スクール・資格・書籍で年20万→年収UPにつながる",
-  },
-  {
-    id: "independence",
-    label: "独立・開業",
-    emoji: "🏪",
-    defaultAge: 30,
-    lumpCost: 100, // 自己資金（公庫借入とは別に必要な手持ち）
-    annualCost: 85, // 借入返済 年85万（公庫1000万・10年返済・金利2%相当）
-    durationYears: 10,
-    description: "自己資金100万+公庫借入返済 年85万×10年。内装・設備・運転資金込み",
+    id: "home",
+    label: "マイホーム",
+    emoji: "🏠",
+    defaultAge: 35,
+    lumpCost: 600, // 頭金・諸費用（物件4000万の15%）
+    annualCost: 120, // ローン月10万×12ヶ月（3400万借入・35年・金利1.5%）
+    durationYears: 35,
+    description: "頭金600万+ローン月10万×35年",
   },
 ];
 
@@ -172,9 +169,9 @@ export const EXPENSE_LABELS: Record<keyof ExpenseBreakdown, { label: string; emo
 };
 
 export const STEP_LABELS = [
-  { title: "あなたについて", subtitle: "年齢と年収を教えて！" },
+  { title: "あなたについて", subtitle: "年齢とお給料を教えて！" },
   { title: "貯金のこと", subtitle: "今どのくらい貯まってる？" },
   { title: "生活スタイル", subtitle: "お金の使い方は？" },
-  { title: "やりたいこと", subtitle: "人生でやりたいことは？" },
+  { title: "やりたいこと", subtitle: "独立？結婚？コンテスト？" },
   { title: "お金を増やす", subtitle: "投資に興味ある？" },
 ];

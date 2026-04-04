@@ -14,7 +14,7 @@ export function BalanceMeter({ profile }: { profile: UserProfile }) {
       )
     : 0;
   const selfInvestRate =
-    (profile.events ?? []).some((e) => e.id === "skill_investment" || e.label.includes("自己投資")) ? 0.05 : 0;
+    (profile.events ?? []).some((e) => e.id === "skill_investment" || e.id === "contest" || e.label.includes("講習") || e.label.includes("自己投資")) ? 0.05 : 0;
 
   const consumptionRate = Math.max(
     0,

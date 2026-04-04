@@ -82,7 +82,7 @@ export function diagnose(data: YearlyData[], profile: UserProfile): Diagnosis {
   // 自己投資
   const events = profile.events ?? [];
   const hasSelfInvest = events.some(
-    (e) => e.id === "skill_investment" || e.label.includes("自己投資")
+    (e) => e.id === "skill_investment" || e.id === "contest" || e.label.includes("講習") || e.label.includes("自己投資")
   );
   if (hasSelfInvest) {
     score += 5;

@@ -9,8 +9,8 @@ const mplusRounded = M_PLUS_Rounded_1c({
 });
 
 export const metadata: Metadata = {
-  title: "LifePlan Canvas",
-  description: "新社会人のための人生攻略シミュレーター",
+  title: "理容師のライフプラン",
+  description: "理容師のための人生設計シミュレーター",
 };
 
 export function generateViewport() {

@@ -116,7 +116,7 @@ export function Dashboard() {
       <div className="mx-auto max-w-md space-y-4">
         {/* Header */}
         <div className="flex items-center justify-between">
-          <h1 className="text-xl font-bold text-violet-800">LifePlan Canvas</h1>
+          <h1 className="text-xl font-bold text-violet-800">理容師のライフプラン</h1>
           <Button
             variant="ghost"
             size="sm"

@@ -4,9 +4,7 @@ import { useState } from "react";
 import { Slider } from "@/components/ui/slider";
 import { Label } from "@/components/ui/label";
 import { NumberInput } from "@/components/shared/number-input";
-import { SelectableCard } from "@/components/shared/selectable-card";
 import { useLifePlanStore } from "@/hooks/use-lifeplan-store";
-import { JOB_PRESETS } from "@/lib/constants";
 
 type IncomeMode = "annual" | "monthly_take_home";
 
@@ -45,6 +43,14 @@ export function StepAgeJob() {
 
   return (
     <div className="space-y-6">
+      {/* 挨拶 */}
+      <div className="text-center space-y-1">
+        <p className="text-2xl">✂️</p>
+        <p className="text-sm text-gray-600">
+          理容師としての人生、一緒にシミュレーションしよう！
+        </p>
+      </div>
+
       {/* 年齢 */}
       <div className="space-y-3">
         <div className="flex justify-between items-center">
@@ -103,6 +109,9 @@ export function StepAgeJob() {
               毎月の口座に振り込まれる金額でOK！
             </p>
             <div className="rounded-xl bg-violet-50 px-3 py-2 text-xs text-violet-700">
+              💡 理容師1年目の手取りは月15〜18万が一般的だよ
+            </div>
+            <div className="rounded-xl bg-violet-50 px-3 py-2 text-xs text-violet-700">
               → 額面年収に換算すると約<span className="font-bold">{profile.annualIncome}</span>万円
             </div>
           </div>
@@ -120,26 +129,6 @@ export function StepAgeJob() {
             </p>
           </div>
         )}
-      </div>
-
-      {/* 職種 */}
-      <div className="space-y-3">
-        <Label className="text-base font-medium">どんな仕事？</Label>
-        <p className="text-xs text-gray-400">
-          昇給ペースの参考にするよ（年収には影響しないので気軽に選んでね）
-        </p>
-        <div className="grid grid-cols-3 gap-2">
-          {JOB_PRESETS.map((job) => (
-            <SelectableCard
-              key={job.id}
-              emoji={job.emoji}
-              label={job.label}
-              selected={profile.jobCategory === job.id}
-              onClick={() => updateProfile({ jobCategory: job.id })}
-              compact
-            />
-          ))}
-        </div>
       </div>
     </div>
   );

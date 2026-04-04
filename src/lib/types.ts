@@ -1,26 +1,3 @@
-// --- 職種カテゴリ ---
-export type JobCategory =
-  | "it_engineer"
-  | "sales"
-  | "office_work"
-  | "consulting"
-  | "public_servant"
-  | "medical"
-  | "creative"
-  | "barber"
-  | "service"
-  | "other";
-
-export interface JobPreset {
-  id: JobCategory;
-  label: string;
-  emoji: string;
-  startingSalary: number;
-  growthRate: number;
-  peakAge: number;
-  peakSalary: number;
-}
-
 // --- 生活スタイル ---
 export type LifestyleType = "saver" | "normal" | "spender";
 
@@ -106,7 +83,6 @@ export interface SalaryGrowth {
 // --- ユーザープロファイル ---
 export interface UserProfile {
   age: number;
-  jobCategory: JobCategory;
   annualIncome: number;
   currentSavings: number;
   lifestyle: LifestyleType;

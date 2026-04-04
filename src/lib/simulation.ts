@@ -33,9 +33,9 @@ export function simulate(profile: UserProfile): YearlyData[] {
   const marriageEvent = events.find((e) => e.id === "marriage");
   const marriageAge = marriageEvent?.age ?? 999;
 
-  // 自己投資イベント
+  // 自己投資イベント（技術講習・コンテスト含む）
   const selfInvEvent = events.find(
-    (e) => e.id === "skill_investment" || e.label.includes("自己投資")
+    (e) => e.id === "skill_investment" || e.id === "contest" || e.label.includes("講習") || e.label.includes("自己投資")
   );
 
   // 支出内訳から月額支出を算出（年額に変換）
