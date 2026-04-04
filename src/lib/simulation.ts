@@ -92,7 +92,8 @@ export function simulate(profile: UserProfile): YearlyData[] {
       // 結婚後は1.8倍（2人分の生活費、ただし住居等は共有）
       if (isMarried) baseExpense *= 1.8;
     } else {
-      baseExpense = takeHome * (1 - lifestyle.savingsRate);
+      baseExpense = takeHome * (1 - lifestyle.savingsRate) * expenseGrowth;
+      if (isMarried) baseExpense *= 1.8;
     }
 
     // --- ライフイベント費用 ---
