@@ -172,10 +172,22 @@ export function simulate(profile: UserProfile): YearlyData[] {
 
     // --- 年間収支 ---
     const annualNet = takeHome - baseExpense - eventCost;
-    cashNoInvest += annualNet;
 
+    // マイナス時は生活費借入（高金利5%）が発生する現実をモデル化
+    const DEBT_INTEREST = 0.05;
+
+    // 投資なしケース
+    cashNoInvest += annualNet;
+    if (cashNoInvest < 0) {
+      // マイナス分に利子が発生（借金が雪だるま式に増える）
+      cashNoInvest *= 1 + DEBT_INTEREST;
+    }
+
+    // 投資ありケース
     const inv = profile.investment;
-    const annualInvestAmount = inv.isInvesting
+    // 資産がマイナスなら投資に回す余裕はない
+    const canInvest = cashWithInvest >= 0;
+    const annualInvestAmount = (inv.isInvesting && canInvest)
       ? inv.useRatioMode
         ? takeHome * (inv.ratioPercent / 100)
         : inv.monthlyAmount * 12
@@ -192,6 +204,10 @@ export function simulate(profile: UserProfile): YearlyData[] {
       }
     } else {
       cashWithInvest += annualNet;
+    }
+    // 投資ありケースでもマイナスなら借入利子
+    if (cashWithInvest + investmentBalance < 0) {
+      cashWithInvest *= 1 + DEBT_INTEREST;
     }
 
     data.push({

@@ -121,10 +121,10 @@ export function EducationNudge({
   );
   if (goesNegative) {
     nudges.push({
-      emoji: "🆘",
-      title: "このままだと赤字になるかも",
-      body: `今の計画だと${goesNegative.age}歳で貯金が底をつく予測。パラメータを調整して、黒字キープできるプランを探ってみよう！`,
-      color: "bg-red-50 border-red-200",
+      emoji: "🚨",
+      title: "このプラン、途中で破綻する",
+      body: `${goesNegative.age}歳で資産がマイナスに。マイナス＝借金が必要ってこと。借金には利子がつくから、一度ハマると抜け出すのがめちゃくちゃ大変。「最後はプラスだからOK」じゃない。途中で一度でもマイナスになるプランは現実的に成り立たないよ。支出を減らす・イベント時期をずらす・収入を上げる、どれかで黒字をキープできるプランを探ろう！`,
+      color: "bg-red-50 border-red-300",
     });
   }
 

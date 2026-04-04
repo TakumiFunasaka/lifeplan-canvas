@@ -46,8 +46,15 @@ export function diagnose(data: YearlyData[], profile: UserProfile): Diagnosis {
     isInvesting ? d.savingsWithInvestment < 0 : d.savings < 0
   );
   if (goesNegative) {
-    score -= 10;
-    messages.push(`${goesNegative.age}歳で資産がマイナスに突入する予測。計画の見直しが必要`);
+    const negativeYears = data.filter((d) =>
+      isInvesting ? d.savingsWithInvestment < 0 : d.savings < 0
+    ).length;
+    score -= 25;
+    messages.push(
+      `🚨 ${goesNegative.age}歳で資産がマイナスに！これは借金が必要になるということ。` +
+      `しかも借金には利子がつくから、一度マイナスになると雪だるま式に膨らむ。` +
+      (negativeYears > 3 ? `${negativeYears}年間もマイナスが続く予測…このプランは根本的に見直しが必要` : "支出を減らすか、イベント時期をずらして回避しよう")
+    );
   }
 
   // 投資
