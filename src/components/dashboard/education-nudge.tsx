@@ -17,15 +17,62 @@ export function EducationNudge({
   data: YearlyData[];
 }) {
   const nudges: Nudge[] = [];
+  const events = profile.events ?? [];
   const isInvesting = profile.investment.isInvesting && profile.investment.monthlyAmount > 0;
 
-  // 投資してない人向け
-  if (!isInvesting) {
+  const hasIndependence = events.some((e) => e.id === "independence");
+  const hasSelfInvest = events.some(
+    (e) => e.id === "skill_investment" || e.label.includes("自己投資")
+  );
+  const hasMarriage = events.some((e) => e.id === "marriage");
+
+  // --- 独立・開業を目指す人向け ---
+  if (hasIndependence) {
+    const indepEvent = events.find((e) => e.id === "independence")!;
+    const yearsUntil = indepEvent.age - profile.age;
+    const selfFundNeeded = indepEvent.lumpCost || 100;
+
+    nudges.push({
+      emoji: "🏪",
+      title: `独立まであと${yearsUntil}年。自己資金${selfFundNeeded}万円、貯められる？`,
+      body: `日本政策金融公庫から1000万円借りるにしても、自己資金は最低${selfFundNeeded}万円必要。さらに運転資金があると安心。${hasMarriage ? "結婚資金も並行して貯めるなら、計画的に動かないとキツい。" : ""}今から毎月いくら貯められるか、逆算してみよう！`,
+      color: "bg-orange-50 border-orange-300",
+    });
+
+    if (hasSelfInvest) {
+      nudges.push({
+        emoji: "✂️",
+        title: "技術が自己資金を生む",
+        body: "技術講習やコンテストへの挑戦は「お金を使う」んじゃなくて「将来の自分に投資する」こと。技術が上がれば指名が増え、収入が上がり、自己資金も早く貯まる。自己投資あっての自己資金！",
+        color: "bg-emerald-50 border-emerald-200",
+      });
+    } else {
+      nudges.push({
+        emoji: "📚",
+        title: "自己投資、してる？",
+        body: "独立を目指すなら、技術講習やコンテストへの挑戦は欠かせない。お金はかかるけど、技術力は独立後の集客力に直結する。「自己投資」イベントも追加してみて！",
+        color: "bg-amber-50 border-amber-200",
+      });
+    }
+  }
+
+  // --- 投資してない人向け ---
+  if (!isInvesting && !hasIndependence) {
     const years = 65 - profile.age;
     nudges.push({
       emoji: "📊",
       title: "月1万円から始めるだけで…",
       body: `年利5%で${years}年間運用すると、元本${years * 12}万円が約${Math.round(years * 12 * 1.6)}万円に。差額はまるまる「お金が稼いだお金」！`,
+      color: "bg-violet-50 border-violet-200",
+    });
+  }
+
+  // 独立目指す人の投資タイミング
+  if (!isInvesting && hasIndependence) {
+    nudges.push({
+      emoji: "📈",
+      title: "独立資金を貯めつつ、投資も始められる",
+      body: "全額貯金じゃなくても、月5000円でもNISAで積み立てておくと、独立後の安心材料になる。開業してからだと忙しくて始められないかも！",
       color: "bg-violet-50 border-violet-200",
     });
   }
@@ -48,11 +95,8 @@ export function EducationNudge({
     }
   }
 
-  // 自己投資してる人への応援
-  const hasSelfInvest = (profile.events ?? []).some(
-    (e) => e.id === "skill_investment" || e.label.includes("自己投資")
-  );
-  if (hasSelfInvest) {
+  // 自己投資（独立以外の文脈）
+  if (hasSelfInvest && !hasIndependence) {
     nudges.push({
       emoji: "🚀",
       title: "入金力UP = 最強の投資",
@@ -62,7 +106,7 @@ export function EducationNudge({
   }
 
   // ライフイベント多い人
-  if ((profile.events ?? []).length >= 5) {
+  if (events.length >= 5) {
     nudges.push({
       emoji: "🎯",
       title: "やりたいこと、全部叶えるには",

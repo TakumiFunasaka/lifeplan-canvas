@@ -80,12 +80,36 @@ export function diagnose(data: YearlyData[], profile: UserProfile): Diagnosis {
   }
 
   // 自己投資
-  const hasSelfInvest = (profile.events ?? []).some(
+  const events = profile.events ?? [];
+  const hasSelfInvest = events.some(
     (e) => e.id === "skill_investment" || e.label.includes("自己投資")
   );
   if (hasSelfInvest) {
     score += 5;
     messages.push("自己投資してるの最高！入金力を上げるのが最強の投資");
+  }
+
+  // 独立・開業の準備度
+  const indepEvent = events.find((e) => e.id === "independence");
+  if (indepEvent) {
+    const selfFund = indepEvent.lumpCost || 100;
+    const atIndep = data.find((d) => d.age === indepEvent.age);
+    if (atIndep) {
+      const assetsAtIndep = isInvesting ? atIndep.savingsWithInvestment : atIndep.savings;
+      if (assetsAtIndep >= selfFund * 2) {
+        score += 5;
+        messages.push(`${indepEvent.age}歳の独立時に自己資金${selfFund}万の2倍以上ある計算。運転資金にも余裕がありそう！`);
+      } else if (assetsAtIndep >= selfFund) {
+        messages.push(`${indepEvent.age}歳時点で自己資金${selfFund}万はギリギリ確保できそう。もう少し余裕があると安心`);
+      } else {
+        score -= 10;
+        messages.push(`${indepEvent.age}歳の独立時に自己資金が足りない予測…！毎月の貯蓄を見直すか、独立時期を少し後ろにずらしてみて`);
+      }
+    }
+    if (hasSelfInvest) {
+      score += 3;
+      messages.push("技術講習やコンテストへの挑戦は、独立後の集客力に直結。自己投資あっての自己資金！");
+    }
   }
 
   score = Math.max(0, Math.min(100, score));

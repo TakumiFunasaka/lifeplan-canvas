@@ -107,10 +107,10 @@ export const LIFE_EVENT_TEMPLATES: LifeEventTemplate[] = [
     label: "独立・開業",
     emoji: "🏪",
     defaultAge: 30,
-    lumpCost: 500, // 開業資金
-    annualCost: 0,
-    durationYears: 0,
-    description: "開業資金（店舗・設備・運転資金）",
+    lumpCost: 100, // 自己資金（公庫借入とは別に必要な手持ち）
+    annualCost: 85, // 借入返済 年85万（公庫1000万・10年返済・金利2%相当）
+    durationYears: 10,
+    description: "自己資金100万+公庫借入返済 年85万×10年。内装・設備・運転資金込み",
   },
 ];
 

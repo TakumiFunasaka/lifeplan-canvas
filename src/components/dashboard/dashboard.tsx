@@ -4,6 +4,7 @@ import { useMemo, useState, useEffect, useRef } from "react";
 import { useLifePlanStore } from "@/hooks/use-lifeplan-store";
 import { simulate } from "@/lib/simulation";
 import { diagnose } from "@/lib/diagnosis";
+import type { YearlyData, UserProfile } from "@/lib/types";
 import { AssetChart } from "./asset-chart";
 import { YabaiMeter } from "./yabai-meter";
 import { InvestmentGap } from "./investment-gap";
@@ -11,6 +12,75 @@ import { BalanceMeter } from "./balance-meter";
 import { WhatIfPanel } from "./what-if-panel";
 import { EducationNudge } from "./education-nudge";
 import { Button } from "@/components/ui/button";
+
+function IndependenceMilestone({
+  data,
+  profile,
+  isInvesting,
+}: {
+  data: YearlyData[];
+  profile: UserProfile;
+  isInvesting: boolean;
+}) {
+  const events = profile.events ?? [];
+  const indepEvent = events.find((e) => e.id === "independence");
+  if (!indepEvent) return null;
+
+  const selfFund = indepEvent.lumpCost || 100;
+  const atIndep = data.find((d) => d.age === indepEvent.age);
+  const assetsAtIndep = atIndep
+    ? isInvesting ? atIndep.savingsWithInvestment : atIndep.savings
+    : 0;
+  const yearsUntil = indepEvent.age - profile.age;
+  const monthlyNeeded = yearsUntil > 0 ? Math.round((selfFund - profile.currentSavings) / yearsUntil / 12 * 10) / 10 : 0;
+  const isReady = assetsAtIndep >= selfFund;
+
+  return (
+    <div className={`rounded-3xl p-5 ${isReady ? "bg-emerald-50 border border-emerald-200" : "bg-orange-50 border border-orange-200"}`}>
+      <p className="font-bold text-sm">🏪 独立・開業ロードマップ</p>
+      <div className="mt-3 space-y-2">
+        <div className="flex justify-between text-xs">
+          <span className="text-gray-600">目標時期</span>
+          <span className="font-bold">{indepEvent.age}歳（あと{yearsUntil}年）</span>
+        </div>
+        <div className="flex justify-between text-xs">
+          <span className="text-gray-600">必要な自己資金</span>
+          <span className="font-bold">{selfFund}万円〜</span>
+        </div>
+        <div className="flex justify-between text-xs">
+          <span className="text-gray-600">公庫借入（想定）</span>
+          <span className="font-bold">1,000万円</span>
+        </div>
+        <div className="flex justify-between text-xs">
+          <span className="text-gray-600">{indepEvent.age}歳時点の予測資産</span>
+          <span className={`font-bold ${isReady ? "text-emerald-600" : "text-orange-600"}`}>
+            {Math.round(assetsAtIndep).toLocaleString()}万円
+          </span>
+        </div>
+
+        {/* プログレスバー */}
+        <div className="w-full h-3 bg-white/60 rounded-full overflow-hidden mt-1">
+          <div
+            className={`h-full rounded-full transition-all duration-700 ${isReady ? "bg-emerald-500" : "bg-orange-400"}`}
+            style={{ width: `${Math.min(100, (assetsAtIndep / selfFund) * 100)}%` }}
+          />
+        </div>
+
+        {!isReady && monthlyNeeded > 0 && (
+          <p className="text-xs text-orange-700 mt-1">
+            💡 あと月<span className="font-bold">{monthlyNeeded}万円</span>ずつ貯めれば間に合う計算。
+            結婚も考えるなら、もう少し余裕を持って計画しよう
+          </p>
+        )}
+        {isReady && (
+          <p className="text-xs text-emerald-700 mt-1">
+            ✅ 自己資金はクリアできそう！運転資金に余裕があるとさらに安心
+          </p>
+        )}
+      </div>
+    </div>
+  );
+}
 
 function formatMan(v: number) {
   if (Math.abs(v) >= 10000) return `${(v / 10000).toFixed(1)}億円`;
@@ -123,6 +193,9 @@ export function Dashboard() {
             {formatMan(finalAssets)}
           </p>
         </div>
+
+        {/* 独立マイルストーン */}
+        <IndependenceMilestone data={data} profile={profile} isInvesting={isInvesting} />
 
         {/* 投資効果 */}
         <InvestmentGap data={data} isInvesting={isInvesting} />
