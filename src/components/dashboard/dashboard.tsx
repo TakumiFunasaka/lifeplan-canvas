@@ -12,6 +12,7 @@ import { BalanceMeter } from "./balance-meter";
 import { WhatIfPanel } from "./what-if-panel";
 import { EducationNudge } from "./education-nudge";
 import { WhatIfCompare } from "./what-if-compare";
+import { SimplePL } from "./simple-pl";
 import { Button } from "@/components/ui/button";
 
 function IndependenceMilestone({
@@ -192,6 +193,9 @@ export function Dashboard() {
             </div>
           )}
         </div>
+
+        {/* 月のお金の流れ */}
+        <SimplePL profile={profile} data={data} />
 
         {/* 80歳サマリー */}
         <div
