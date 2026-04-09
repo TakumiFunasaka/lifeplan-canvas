@@ -15,6 +15,13 @@ function getMonthlyExpenseTotal(eb: ExpenseBreakdown): number {
   return Object.values(eb).reduce((s, v) => s + (v || 0), 0);
 }
 
+// インフレ率（年）
+const INFLATION_RATE = 0.015;
+// 退職後の投資リターン倍率（現役時の20%に低下）
+const POST_RETIREMENT_RETURN_RATIO = 0.2;
+// 退職後に現金がこの額(万円)を下回ったら投資を取り崩す
+const DRAWDOWN_BUFFER = 300;
+
 export function simulate(profile: UserProfile): YearlyData[] {
   const lifestyle = LIFESTYLE_PRESETS.find((l) => l.id === profile.lifestyle)!;
   const events = profile.events ?? [];
@@ -29,18 +36,18 @@ export function simulate(profile: UserProfile): YearlyData[] {
   let cashWithInvest = profile.currentSavings;
   let investmentBalance = 0;
 
-  // 結婚イベントの年齢を取得
   const marriageEvent = events.find((e) => e.id === "marriage");
   const marriageAge = marriageEvent?.age ?? 999;
 
-  // 自己投資イベント（技術講習・コンテスト含む）
   const selfInvEvent = events.find(
     (e) => e.id === "skill_investment" || e.id === "contest" || e.label.includes("講習") || e.label.includes("自己投資")
   );
 
-  // 支出内訳から月額支出を算出（年額に変換）
+  // 独立イベント
+  const independenceEvent = events.find((e) => e.id === "independence");
+  const independenceAge = independenceEvent?.age ?? 999;
+
   const monthlyExpense = getMonthlyExpenseTotal(eb);
-  // 支出内訳モードの場合はlifestyleのsavingsRateの代わりに使う
   const useExpenseBreakdown = monthlyExpense > 0;
 
   for (let age = profile.age; age <= SIMULATION_END_AGE; age++) {
@@ -56,7 +63,6 @@ export function simulate(profile: UserProfile): YearlyData[] {
         income *= 1 + selfBoost;
       }
 
-      // 配偶者の昇給（結婚後）
       if (spouse.enabled && age > marriageAge) {
         const spSg = spouse.salaryGrowth;
         const spRaise = spSg.annualRaisePercent / 100;
@@ -68,32 +74,48 @@ export function simulate(profile: UserProfile): YearlyData[] {
 
     // --- 世帯収入 ---
     const isMarried = spouse.enabled && age >= marriageAge;
-    const myIncome = age >= RETIREMENT_AGE ? PENSION_MONTHLY * 12 : income;
+    const isRetired = age >= RETIREMENT_AGE;
+
+    // 年金: 報酬比例の簡易計算（平均年収ベース）
+    const selfPension = PENSION_MONTHLY * 12; // 基礎年金180万
+    const selfKousei = Math.round(income * 0.005481 * Math.min(age - profile.age, 40) / 10); // 報酬比例の概算
+    const myIncome = isRetired ? selfPension + selfKousei : income;
     const partnerIncome = isMarried
-      ? (age >= RETIREMENT_AGE ? PENSION_MONTHLY * 12 * 0.7 : spouseIncome) // 配偶者年金は7掛け概算
+      ? (isRetired ? selfPension * 0.7 : spouseIncome)
       : 0;
     const householdIncome = myIncome + partnerIncome;
 
     // --- 手取り ---
-    const takeHome = age >= RETIREMENT_AGE
+    const takeHome = isRetired
       ? householdIncome
       : householdIncome * (1 - EFFECTIVE_TAX_RATE);
 
     // --- 基本生活費 ---
-    // 年齢とともに支出が年0.5%ずつ上がる（生活水準の自然上昇）
     const yearsFromStart = age - profile.age;
-    const expenseGrowth = Math.pow(1.005, yearsFromStart);
+    const inflationFactor = Math.pow(1 + INFLATION_RATE, yearsFromStart);
 
     let baseExpense: number;
-    if (age >= RETIREMENT_AGE) {
-      baseExpense = takeHome * 0.85;
+    if (isRetired) {
+      // 退職後: 現役時の支出の70%（子供独立、ローン完済等を反映）
+      if (useExpenseBreakdown) {
+        baseExpense = monthlyExpense * 12 * 0.7 * inflationFactor;
+      } else {
+        baseExpense = takeHome * 0.85;
+      }
     } else if (useExpenseBreakdown) {
-      baseExpense = monthlyExpense * 12 * expenseGrowth;
-      // 結婚後は1.8倍（2人分の生活費、ただし住居等は共有）
-      if (isMarried) baseExpense *= 1.8;
+      baseExpense = monthlyExpense * 12 * inflationFactor;
+      if (isMarried) baseExpense *= 1.5; // 1.8→1.5に調整(共有部分が多い)
     } else {
-      baseExpense = takeHome * (1 - lifestyle.savingsRate) * expenseGrowth;
-      if (isMarried) baseExpense *= 1.8;
+      baseExpense = takeHome * (1 - lifestyle.savingsRate) * inflationFactor;
+      if (isMarried) baseExpense *= 1.5;
+    }
+
+    // --- 支出フェーズ簡易版: 独立後は経費が増える ---
+    if (age >= independenceAge && age < RETIREMENT_AGE) {
+      // 独立後は売上が収入だが、経費率が高い(店舗維持費等)
+      // ただしイベントの年間コストに含まれているので、ここでは追加しない
+      // 代わりに独立後の生活費を若干下げる（通勤費等が減る）
+      baseExpense *= 0.95;
     }
 
     // --- ライフイベント費用 ---
@@ -101,7 +123,6 @@ export function simulate(profile: UserProfile): YearlyData[] {
     const yearEventLabels: string[] = [];
 
     for (const event of events) {
-      // 子どもイベントは教育レベルに応じてコスト計算
       const isChildEvent = event.id.startsWith("child_");
       if (isChildEvent && event.childEducation) {
         const childAge = age - event.age;
@@ -110,27 +131,23 @@ export function simulate(profile: UserProfile): YearlyData[] {
           if (stage) {
             const level = event.childEducation[stage];
             const costs = EDUCATION_COSTS[stage];
-            eventCost += costs[level];
+            eventCost += costs[level] * inflationFactor; // 教育費にもインフレ適用
           } else if (childAge < 3) {
-            eventCost += 40; // 0-2歳: 保育・育児費年40万
+            eventCost += 40 * inflationFactor;
           }
           if (childAge === 0) yearEventLabels.push(`${event.emoji}${event.label}`);
         }
-        // 出産費用
         if (age === event.age && event.lumpCost > 0) {
           eventCost += event.lumpCost;
         }
         continue;
       }
 
-      // 借入モデル: 借入年に資金が入り（一時費用と相殺）、返済が発生
       if (event.loan && event.loan.amount > 0) {
         if (age === event.age) {
-          // 借入額が手元に入る（プラス）→ 一時費用（自己資金）と相殺
-          eventCost += event.lumpCost - event.loan.amount; // 自己資金100 - 借入1000 = -900（手元に残る）
+          eventCost += event.lumpCost - event.loan.amount;
           yearEventLabels.push(`${event.emoji}${event.label}`);
         }
-        // 返済（元利均等の年間返済額）
         const r = event.loan.interestRate / 100;
         const n = event.loan.repaymentYears;
         const annualRepay = r > 0
@@ -143,13 +160,11 @@ export function simulate(profile: UserProfile): YearlyData[] {
         continue;
       }
 
-      // 一時費用
       if (age === event.age && event.lumpCost > 0) {
         eventCost += event.lumpCost;
         yearEventLabels.push(`${event.emoji}${event.label}`);
       }
 
-      // 買い替えサイクル
       if (
         event.replaceCycleYears && event.replaceCycleYears > 0 &&
         age > event.age && event.lumpCost > 0 &&
@@ -160,7 +175,6 @@ export function simulate(profile: UserProfile): YearlyData[] {
         yearEventLabels.push(`${event.emoji}買替え`);
       }
 
-      // 継続費用
       if (event.annualCost > 0 && event.durationYears > 0 &&
         age >= event.age && age < event.age + event.durationYears) {
         eventCost += event.annualCost;
@@ -173,39 +187,51 @@ export function simulate(profile: UserProfile): YearlyData[] {
     // --- 年間収支 ---
     const annualNet = takeHome - baseExpense - eventCost;
 
-    // マイナス時は生活費借入（高金利5%）が発生する現実をモデル化
     const DEBT_INTEREST = 0.05;
 
     // 投資なしケース
     cashNoInvest += annualNet;
     if (cashNoInvest < 0) {
-      // マイナス分に利子が発生（借金が雪だるま式に増える）
       cashNoInvest *= 1 + DEBT_INTEREST;
     }
 
     // 投資ありケース
     const inv = profile.investment;
-    // 資産がマイナスなら投資に回す余裕はない
     const canInvest = cashWithInvest >= 0;
-    const annualInvestAmount = (inv.isInvesting && canInvest)
+
+    // 希望投資額
+    let desiredInvestAmount = (inv.isInvesting && canInvest)
       ? inv.useRatioMode
         ? takeHome * (inv.ratioPercent / 100)
         : inv.monthlyAmount * 12
       : 0;
 
-    if (annualInvestAmount > 0) {
-      if (age < RETIREMENT_AGE) {
-        cashWithInvest += annualNet - annualInvestAmount;
-        investmentBalance += annualInvestAmount;
-        investmentBalance *= 1 + inv.expectedReturn;
-      } else {
-        cashWithInvest += annualNet;
-        investmentBalance *= 1 + inv.expectedReturn * 0.5;
+    // 余剰連動: 投資前の余剰でキャップ
+    if (desiredInvestAmount > 0 && !isRetired) {
+      const surplus = annualNet; // 投資前の年間余剰
+      desiredInvestAmount = Math.max(0, Math.min(desiredInvestAmount, surplus));
+    }
+
+    if (isRetired) {
+      // 退職後: 積立停止、リターン低下
+      cashWithInvest += annualNet;
+      investmentBalance *= 1 + inv.expectedReturn * POST_RETIREMENT_RETURN_RATIO;
+
+      // 取り崩し: 現金がバッファ以下なら投資を売却
+      if (cashWithInvest < DRAWDOWN_BUFFER && investmentBalance > 0) {
+        const needed = DRAWDOWN_BUFFER - cashWithInvest + Math.abs(Math.min(0, annualNet));
+        const drawdown = Math.min(needed, investmentBalance);
+        cashWithInvest += drawdown;
+        investmentBalance -= drawdown;
       }
+    } else if (desiredInvestAmount > 0) {
+      cashWithInvest += annualNet - desiredInvestAmount;
+      investmentBalance += desiredInvestAmount;
+      investmentBalance *= 1 + inv.expectedReturn;
     } else {
       cashWithInvest += annualNet;
     }
-    // 投資ありケースでもマイナスなら借入利子
+
     if (cashWithInvest + investmentBalance < 0) {
       cashWithInvest *= 1 + DEBT_INTEREST;
     }
