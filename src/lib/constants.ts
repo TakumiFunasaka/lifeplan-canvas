@@ -104,10 +104,10 @@ export const LIFE_EVENT_TEMPLATES: LifeEventTemplate[] = [
     label: "マイホーム",
     emoji: "🏠",
     defaultAge: 35,
-    lumpCost: 600, // 頭金・諸費用（物件4000万の15%）
-    annualCost: 150, // ローン月10万+固定資産税15万+修繕積立10万+火災保険5万≒年150万
-    durationYears: 35,
-    description: "頭金600万+ローン・税・修繕で月12.5万×35年",
+    lumpCost: 600, // 頭金・諸費用
+    annualCost: 30, // 固定資産税15万+修繕積立10万+火災保険5万≒年30万(ローンは借入モデルで別計算)
+    durationYears: 50, // 購入後ずっと維持費がかかる
+    description: "頭金600万+3400万を35年ローン(月10万)+維持費年30万。家賃がなくなる",
   },
 ];
 

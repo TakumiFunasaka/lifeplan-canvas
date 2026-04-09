@@ -50,6 +50,11 @@ export function simulate(profile: UserProfile): YearlyData[] {
   const monthlyExpense = getMonthlyExpenseTotal(eb);
   const useExpenseBreakdown = monthlyExpense > 0;
 
+  // マイホームイベントの年齢を取得(購入後は家賃ゼロ)
+  const homeEvent = events.find((e) => e.id === "home");
+  const homeAge = homeEvent?.age ?? 999;
+  const housingExpense = eb.housing ?? 0; // 月額家賃(万円)
+
   for (let age = profile.age; age <= SIMULATION_END_AGE; age++) {
     // --- 昇給 ---
     if (age > profile.age && age < RETIREMENT_AGE) {
@@ -103,11 +108,17 @@ export function simulate(profile: UserProfile): YearlyData[] {
         baseExpense = takeHome * 0.85;
       }
     } else if (useExpenseBreakdown) {
-      baseExpense = monthlyExpense * 12 * inflationFactor;
-      if (isMarried) baseExpense *= 1.5; // 1.8→1.5に調整(共有部分が多い)
+      // マイホーム購入後は家賃分を差し引く
+      const effectiveMonthly = age >= homeAge
+        ? monthlyExpense - housingExpense
+        : monthlyExpense;
+      baseExpense = effectiveMonthly * 12 * inflationFactor;
+      if (isMarried) baseExpense *= 1.5;
     } else {
       baseExpense = takeHome * (1 - lifestyle.savingsRate) * inflationFactor;
       if (isMarried) baseExpense *= 1.5;
+      // ライフスタイルモードでもマイホーム後は家賃相当(月6万≒年72万)を削減
+      if (age >= homeAge) baseExpense -= 72 * inflationFactor;
     }
 
     // --- 支出フェーズ簡易版: 独立後は経費が増える ---
