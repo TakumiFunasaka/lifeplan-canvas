@@ -174,6 +174,7 @@ export function WhatIfPanel() {
   const [showAddEvent, setShowAddEvent] = useState(false);
   const [showTemplates, setShowTemplates] = useState(false);
   const [showExpense, setShowExpense] = useState(false);
+  const [showBizDetail, setShowBizDetail] = useState(false);
   const [newLabel, setNewLabel] = useState("");
   const [newLump, setNewLump] = useState(0);
   const [newAnnual, setNewAnnual] = useState(0);
@@ -307,8 +308,6 @@ export function WhatIfPanel() {
           {/* === 独立経営プラン === */}
           {events.some((e) => e.id === "independence") && (() => {
             const bp = profile.businessPlan;
-            const [showBizDetail, setShowBizDetail] = useState(false);
-
             // 現在の収益概算(プランがある場合)
             const bizSummary = bp ? (() => {
               const monthlySales = (bp.customerPrice / 10000) * bp.dailyCustomers * bp.workDaysPerMonth;
