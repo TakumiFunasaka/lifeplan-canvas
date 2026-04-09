@@ -14,9 +14,9 @@ export const LIFE_EVENT_TEMPLATES: LifeEventTemplate[] = [
     emoji: "🏪",
     defaultAge: 30,
     lumpCost: 100, // 自己資金（公庫借入とは別に必要な手持ち）
-    annualCost: 0,
-    durationYears: 0,
-    description: "自己資金100万+公庫借入で開業。借入額・返済期間は調整可能",
+    annualCost: 85, // 店舗家賃36万+光熱費12万+材料費12万+保険6万+雑費19万≒年85万
+    durationYears: 30,
+    description: "自己資金100万+公庫借入。店舗維持費(家賃・光熱費・材料費等)年85万",
   },
   {
     id: "marriage",
@@ -105,9 +105,9 @@ export const LIFE_EVENT_TEMPLATES: LifeEventTemplate[] = [
     emoji: "🏠",
     defaultAge: 35,
     lumpCost: 600, // 頭金・諸費用（物件4000万の15%）
-    annualCost: 120, // ローン月10万×12ヶ月（3400万借入・35年・金利1.5%）
+    annualCost: 150, // ローン月10万+固定資産税15万+修繕積立10万+火災保険5万≒年150万
     durationYears: 35,
-    description: "頭金600万+ローン月10万×35年",
+    description: "頭金600万+ローン・税・修繕で月12.5万×35年",
   },
 ];
 

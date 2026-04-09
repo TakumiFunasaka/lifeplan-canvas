@@ -160,24 +160,29 @@ export function simulate(profile: UserProfile): YearlyData[] {
         continue;
       }
 
+      // 一時費用(将来のイベントにはインフレ適用)
       if (age === event.age && event.lumpCost > 0) {
-        eventCost += event.lumpCost;
+        const yearsUntilEvent = event.age - profile.age;
+        const lumpInflation = Math.pow(1 + INFLATION_RATE, Math.max(0, yearsUntilEvent));
+        eventCost += event.lumpCost * lumpInflation;
         yearEventLabels.push(`${event.emoji}${event.label}`);
       }
 
+      // 買い替えサイクル(インフレ適用)
       if (
         event.replaceCycleYears && event.replaceCycleYears > 0 &&
         age > event.age && event.lumpCost > 0 &&
         (age - event.age) % event.replaceCycleYears === 0 &&
         event.durationYears > 0 && age < event.age + event.durationYears
       ) {
-        eventCost += event.lumpCost;
+        eventCost += event.lumpCost * inflationFactor;
         yearEventLabels.push(`${event.emoji}買替え`);
       }
 
+      // 継続費用(インフレ適用)
       if (event.annualCost > 0 && event.durationYears > 0 &&
         age >= event.age && age < event.age + event.durationYears) {
-        eventCost += event.annualCost;
+        eventCost += event.annualCost * inflationFactor;
         if (age === event.age && !yearEventLabels.some((l) => l.includes(event.label))) {
           yearEventLabels.push(`${event.emoji}${event.label}`);
         }

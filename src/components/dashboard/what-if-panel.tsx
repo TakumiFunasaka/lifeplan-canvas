@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { NumberInput } from "@/components/shared/number-input";
 import { useLifePlanStore } from "@/hooks/use-lifeplan-store";
-import { LIFE_EVENT_TEMPLATES, EXPENSE_LABELS, DEFAULT_CHILD_EDUCATION } from "@/lib/constants";
+import { LIFE_EVENT_TEMPLATES, EXPENSE_LABELS, DEFAULT_CHILD_EDUCATION, LIFESTYLE_PRESETS } from "@/lib/constants";
 import type { LifeEvent, ExpenseBreakdown, ChildEducation, EducationLevel } from "@/lib/types";
 
 // --- 投資利率プリセット ---
@@ -220,6 +220,35 @@ export function WhatIfPanel() {
 
       {open && (
         <div className="mt-4 space-y-5 animate-in fade-in slide-in-from-top-2 duration-200">
+
+          {/* === 年齢 === */}
+          <div className="space-y-2">
+            <div className="flex justify-between items-center">
+              <Label className="text-sm">現在の年齢</Label>
+              <span className="text-sm font-bold text-violet-600 tabular-nums">{profile.age}歳</span>
+            </div>
+            <Slider min={18} max={55} step={1} value={[profile.age]}
+              onValueChange={(v) => updateProfile({ age: Array.isArray(v) ? v[0] : v })} />
+          </div>
+
+          {/* === ライフスタイル === */}
+          <div className="space-y-2">
+            <Label className="text-sm">お金の使い方</Label>
+            <div className="grid grid-cols-3 gap-1.5">
+              {LIFESTYLE_PRESETS.map((ls) => (
+                <button key={ls.id} type="button"
+                  onClick={() => updateProfile({ lifestyle: ls.id })}
+                  className={`rounded-lg p-2 text-center transition-all ${
+                    profile.lifestyle === ls.id
+                      ? "bg-violet-100 border-2 border-violet-400"
+                      : "bg-gray-50 border border-gray-200 hover:border-violet-200"
+                  }`}>
+                  <span className="text-lg">{ls.emoji}</span>
+                  <p className="text-[10px] font-medium">{ls.label}</p>
+                </button>
+              ))}
+            </div>
+          </div>
 
           {/* === 収入セクション === */}
           <div className="space-y-2">
