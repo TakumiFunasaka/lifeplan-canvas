@@ -154,10 +154,43 @@ export function Dashboard() {
           </div>
         )}
 
+        {/* ===== ZONE 1: 現状を知る ===== */}
+
         {/* ヤバい度 */}
         <YabaiMeter diagnosis={diagnosis} />
 
-        {/* チャート */}
+        {/* 80歳サマリー — ヤバい度の直後に具体的な数字 */}
+        <div
+          className={`rounded-3xl p-4 text-center transition-all duration-300 ${
+            finalAssets >= 0
+              ? "bg-emerald-50 border border-emerald-200"
+              : "bg-red-50 border border-red-200"
+          } ${flash ? "scale-[1.02]" : ""}`}
+        >
+          <p className="text-sm text-gray-600">このままいくと、80歳で…</p>
+          <p
+            className={`text-2xl font-bold ${
+              finalAssets >= 0 ? "text-emerald-600" : "text-red-500"
+            }`}
+          >
+            {formatMan(finalAssets)}
+          </p>
+          {finalAssets < 0 && (
+            <p className="text-xs text-red-400 mt-1">でも大丈夫、下の設定を変えてみよう 👇</p>
+          )}
+        </div>
+
+        {/* 月のお金の流れ — なぜそうなるか理解する */}
+        <SimplePL profile={profile} data={data} />
+
+        {/* ===== ZONE 2: 調整する ===== */}
+
+        {/* パラメータ調整 — すぐに改善アクションを取れる位置に */}
+        <WhatIfPanel />
+
+        {/* ===== ZONE 3: 結果を確認する ===== */}
+
+        {/* チャート — 調整後の結果を視覚化 */}
         <div
           className={`rounded-3xl bg-white p-4 shadow-sm border transition-all duration-300 ${
             flash ? "border-violet-300 shadow-violet-100 shadow-md" : "border-gray-100"
@@ -179,7 +212,6 @@ export function Dashboard() {
             </div>
           </div>
           <AssetChart data={data} showInvestment={isInvesting} />
-          {/* イベントラベル */}
           {(profile.events ?? []).length > 0 && (
             <div className="flex flex-wrap gap-1.5 mt-2">
               {(profile.events ?? []).map((event) => (
@@ -194,43 +226,21 @@ export function Dashboard() {
           )}
         </div>
 
-        {/* 月のお金の流れ */}
-        <SimplePL profile={profile} data={data} />
-
-        {/* 80歳サマリー */}
-        <div
-          className={`rounded-3xl p-4 text-center transition-all duration-300 ${
-            finalAssets >= 0
-              ? "bg-emerald-50 border border-emerald-200"
-              : "bg-red-50 border border-red-200"
-          } ${flash ? "scale-[1.02]" : ""}`}
-        >
-          <p className="text-sm text-gray-600">80歳時点の資産</p>
-          <p
-            className={`text-2xl font-bold ${
-              finalAssets >= 0 ? "text-emerald-600" : "text-red-500"
-            }`}
-          >
-            {formatMan(finalAssets)}
-          </p>
-        </div>
-
-        {/* 独立マイルストーン */}
-        <IndependenceMilestone data={data} profile={profile} isInvesting={isInvesting} />
-
-        {/* 投資効果 */}
-        <InvestmentGap data={data} isInvesting={isInvesting} />
-
-        {/* バランスメーター */}
+        {/* バランスメーター — 支出の構造を確認 */}
         <BalanceMeter profile={profile} />
 
-        {/* シナリオ比較 */}
+        {/* ===== ZONE 4: 深掘り（関心ある人だけ） ===== */}
+
+        {/* シナリオ比較 — もし◯◯しなかったら */}
         <WhatIfCompare profile={profile} currentData={data} />
 
-        {/* パラメータ調整 */}
-        <WhatIfPanel />
+        {/* 投資効果 — 投資してるなら効果を見せる */}
+        <InvestmentGap data={data} isInvesting={isInvesting} />
 
-        {/* 教育ナッジ */}
+        {/* 独立マイルストーン — 独立を選んだ人だけ */}
+        <IndependenceMilestone data={data} profile={profile} isInvesting={isInvesting} />
+
+        {/* 教育ナッジ — 子供がいる人だけ */}
         <EducationNudge profile={profile} data={data} />
 
         {/* 免責 */}
