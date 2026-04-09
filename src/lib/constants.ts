@@ -157,6 +157,40 @@ export const DEFAULT_EXPENSE: ExpenseBreakdown = {
   misc: 1,
 };
 
+// ライフスタイル別の支出プリセット（月額・万円・一人暮らし想定）
+export const LIFESTYLE_EXPENSE_PRESETS: Record<string, ExpenseBreakdown> = {
+  saver: {
+    housing: 5,
+    food: 3,
+    utilities: 1.2,
+    transport: 0.5,
+    insurance: 0.5,
+    entertainment: 1,
+    clothing: 0.5,
+    misc: 0.5,
+  },
+  normal: {
+    housing: 6,
+    food: 4,
+    utilities: 1.5,
+    transport: 1,
+    insurance: 0.5,
+    entertainment: 2,
+    clothing: 1,
+    misc: 1,
+  },
+  spender: {
+    housing: 7,
+    food: 5.5,
+    utilities: 1.5,
+    transport: 1.5,
+    insurance: 0.5,
+    entertainment: 4,
+    clothing: 2,
+    misc: 2,
+  },
+};
+
 export const EXPENSE_LABELS: Record<keyof ExpenseBreakdown, { label: string; emoji: string }> = {
   housing: { label: "家賃・住居", emoji: "🏠" },
   food: { label: "食費", emoji: "🍽️" },

@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { NumberInput } from "@/components/shared/number-input";
 import { useLifePlanStore } from "@/hooks/use-lifeplan-store";
-import { LIFE_EVENT_TEMPLATES, EXPENSE_LABELS, DEFAULT_CHILD_EDUCATION, LIFESTYLE_PRESETS } from "@/lib/constants";
+import { LIFE_EVENT_TEMPLATES, EXPENSE_LABELS, DEFAULT_CHILD_EDUCATION, LIFESTYLE_PRESETS, LIFESTYLE_EXPENSE_PRESETS } from "@/lib/constants";
 import type { LifeEvent, ExpenseBreakdown, ChildEducation, EducationLevel } from "@/lib/types";
 
 // --- 投資利率プリセット ---
@@ -232,25 +232,6 @@ export function WhatIfPanel() {
               onValueChange={(v) => updateProfile({ age: Array.isArray(v) ? v[0] : v })} />
           </div>
 
-          {/* === ライフスタイル === */}
-          <div className="space-y-2">
-            <Label className="text-sm">お金の使い方</Label>
-            <div className="grid grid-cols-3 gap-1.5">
-              {LIFESTYLE_PRESETS.map((ls) => (
-                <button key={ls.id} type="button"
-                  onClick={() => updateProfile({ lifestyle: ls.id })}
-                  className={`rounded-lg p-2 text-center transition-all ${
-                    profile.lifestyle === ls.id
-                      ? "bg-violet-100 border-2 border-violet-400"
-                      : "bg-gray-50 border border-gray-200 hover:border-violet-200"
-                  }`}>
-                  <span className="text-lg">{ls.emoji}</span>
-                  <p className="text-[10px] font-medium">{ls.label}</p>
-                </button>
-              ))}
-            </div>
-          </div>
-
           {/* === 収入セクション === */}
           <div className="space-y-2">
             <div className="flex justify-between items-center">
@@ -323,12 +304,42 @@ export function WhatIfPanel() {
             )}
           </div>
 
-          {/* === 支出内訳 === */}
+          {/* === 支出 === */}
           <div className="space-y-3 rounded-xl bg-gray-50 p-3">
+            <div className="flex items-center justify-between">
+              <p className="text-xs font-medium text-gray-700">🧾 月の支出</p>
+              <span className="text-xs text-gray-500 tabular-nums">{monthlyTotal.toFixed(1)}万/月</span>
+            </div>
+
+            {/* ライフスタイルプリセット */}
+            <div className="grid grid-cols-3 gap-1.5">
+              {LIFESTYLE_PRESETS.map((ls) => {
+                const preset = LIFESTYLE_EXPENSE_PRESETS[ls.id];
+                const presetTotal = preset ? Object.values(preset).reduce((s, v) => s + v, 0) : 0;
+                return (
+                  <button key={ls.id} type="button"
+                    onClick={() => {
+                      if (preset) {
+                        updateProfile({ lifestyle: ls.id, expenseBreakdown: { ...preset } });
+                      }
+                    }}
+                    className={`rounded-lg p-2 text-center transition-all ${
+                      profile.lifestyle === ls.id
+                        ? "bg-violet-100 border-2 border-violet-400"
+                        : "bg-white border border-gray-200 hover:border-violet-200"
+                    }`}>
+                    <span className="text-lg">{ls.emoji}</span>
+                    <p className="text-[10px] font-medium">{ls.label}</p>
+                    <p className="text-[10px] text-gray-400">{presetTotal.toFixed(1)}万/月</p>
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* 個別調整 */}
             <button type="button" onClick={() => setShowExpense(!showExpense)}
-              className="w-full flex items-center justify-between">
-              <p className="text-xs font-medium text-gray-700">🧾 月の支出内訳</p>
-              <span className="text-xs text-gray-500">合計 {monthlyTotal.toFixed(1)}万/月 ▸ 年{Math.round(monthlyTotal * 12)}万</span>
+              className="w-full text-[10px] text-violet-500 hover:text-violet-700">
+              {showExpense ? "内訳を閉じる ▲" : "内訳を調整する ▼"}
             </button>
             {showExpense && (
               <div className="space-y-2 animate-in fade-in duration-200">
@@ -346,7 +357,7 @@ export function WhatIfPanel() {
                   );
                 })}
                 <p className="text-[10px] text-gray-400">
-                  ここで設定した支出が生活費のベースになるよ。投資に回す余裕がどのくらいあるか確認してみて
+                  プリセットをベースに、自分に合わせて微調整できるよ
                 </p>
               </div>
             )}
