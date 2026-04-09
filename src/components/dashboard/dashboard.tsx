@@ -11,6 +11,7 @@ import { InvestmentGap } from "./investment-gap";
 import { BalanceMeter } from "./balance-meter";
 import { WhatIfPanel } from "./what-if-panel";
 import { EducationNudge } from "./education-nudge";
+import { WhatIfCompare } from "./what-if-compare";
 import { Button } from "@/components/ui/button";
 
 function IndependenceMilestone({
@@ -219,6 +220,9 @@ export function Dashboard() {
         {/* バランスメーター */}
         <BalanceMeter profile={profile} />
 
+        {/* シナリオ比較 */}
+        <WhatIfCompare profile={profile} currentData={data} />
+
         {/* パラメータ調整 */}
         <WhatIfPanel />
 
@@ -227,7 +231,7 @@ export function Dashboard() {
 
         {/* 免責 */}
         <p className="text-center text-[10px] text-gray-400 pb-6">
-          ※ 概算シミュレーションです。税制変更・インフレ・運用リスク等は考慮していません
+          ※ 概算シミュレーションです。インフレ年1.5%を反映済み。税制変更・運用リスク等で結果は変わります
         </p>
       </div>
     </div>
