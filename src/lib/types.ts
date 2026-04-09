@@ -63,6 +63,21 @@ export interface LifeEventTemplate {
   description: string;
 }
 
+// --- 独立経営 ---
+export type BusinessStyle = "solo" | "small_team" | "multi_shop";
+
+export interface BusinessPlan {
+  style: BusinessStyle;
+  customerPrice: number;   // 客単価（円）
+  dailyCustomers: number;  // 1日の客数
+  workDaysPerMonth: number; // 月の営業日数
+  monthlyRent: number;     // 店舗家賃（万円/月）
+  staffCount: number;      // スタッフ数（自分除く）
+  staffMonthlyCost: number; // スタッフ1人あたり月コスト（万円、給与+社保）
+  otherMonthlyCost: number; // その他経費（材料費・光熱費・保険等、万円/月）
+  growthRate: number;      // 年間成長率（客数の伸び %）
+}
+
 // --- 配偶者 ---
 export interface SpouseProfile {
   enabled: boolean;
@@ -97,6 +112,7 @@ export interface UserProfile {
   salaryGrowth: SalaryGrowth;
   spouse: SpouseProfile;
   expenseBreakdown: ExpenseBreakdown;
+  businessPlan?: BusinessPlan;
 }
 
 // --- シミュレーション出力 ---

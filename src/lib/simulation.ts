@@ -80,11 +80,40 @@ export function simulate(profile: UserProfile): YearlyData[] {
     // --- 世帯収入 ---
     const isMarried = spouse.enabled && age >= marriageAge;
     const isRetired = age >= RETIREMENT_AGE;
+    const isIndependent = age >= independenceAge && age < RETIREMENT_AGE;
+
+    // 独立後のビジネス収入計算
+    let businessIncome = income; // デフォルトは給与のまま
+    if (isIndependent && profile.businessPlan) {
+      const bp = profile.businessPlan;
+      const yearsInBusiness = age - independenceAge;
+
+      // 立ち上げ期の減衰
+      const rampUp = yearsInBusiness === 0 ? 0.5 : yearsInBusiness === 1 ? 0.8 : 1.0;
+
+      // 客数の成長(年間成長率を適用、立ち上げ後から)
+      const growthFactor = yearsInBusiness >= 2
+        ? Math.pow(1 + bp.growthRate / 100, yearsInBusiness - 2) : 1;
+      const effectiveCustomers = bp.dailyCustomers * rampUp * growthFactor;
+
+      // 月売上 = 客単価 × 日客数 × 営業日
+      const monthlySales = (bp.customerPrice / 10000) * effectiveCustomers * bp.workDaysPerMonth;
+
+      // 月経費 = 家賃 + スタッフ人件費 + その他
+      const monthlyExpenses = bp.monthlyRent + bp.staffCount * bp.staffMonthlyCost + bp.otherMonthlyCost;
+
+      // オーナー取り分(月) = 売上 - 経費
+      const monthlyProfit = monthlySales - monthlyExpenses;
+
+      // 年収(万円) — 最低0
+      businessIncome = Math.max(0, monthlyProfit * 12);
+    }
 
     // 年金: 報酬比例の簡易計算（平均年収ベース）
+    const preRetirementIncome = isIndependent && profile.businessPlan ? businessIncome : income;
     const selfPension = PENSION_MONTHLY * 12; // 基礎年金180万
-    const selfKousei = Math.round(income * 0.005481 * Math.min(age - profile.age, 40) / 10); // 報酬比例の概算
-    const myIncome = isRetired ? selfPension + selfKousei : income;
+    const selfKousei = Math.round(preRetirementIncome * 0.005481 * Math.min(age - profile.age, 40) / 10);
+    const myIncome = isRetired ? selfPension + selfKousei : preRetirementIncome;
     const partnerIncome = isMarried
       ? (isRetired ? selfPension * 0.7 : spouseIncome)
       : 0;
@@ -191,7 +220,9 @@ export function simulate(profile: UserProfile): YearlyData[] {
       }
 
       // 継続費用(インフレ適用)
-      if (event.annualCost > 0 && event.durationYears > 0 &&
+      // 独立イベントの経費はbusinessPlanで計算済みの場合スキップ
+      const skipAnnualCost = event.id === "independence" && profile.businessPlan;
+      if (!skipAnnualCost && event.annualCost > 0 && event.durationYears > 0 &&
         age >= event.age && age < event.age + event.durationYears) {
         eventCost += event.annualCost * inflationFactor;
         if (age === event.age && !yearEventLabels.some((l) => l.includes(event.label))) {

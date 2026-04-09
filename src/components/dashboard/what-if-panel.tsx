@@ -6,8 +6,8 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { NumberInput } from "@/components/shared/number-input";
 import { useLifePlanStore } from "@/hooks/use-lifeplan-store";
-import { LIFE_EVENT_TEMPLATES, EXPENSE_LABELS, DEFAULT_CHILD_EDUCATION, LIFESTYLE_PRESETS, LIFESTYLE_EXPENSE_PRESETS } from "@/lib/constants";
-import type { LifeEvent, ExpenseBreakdown, ChildEducation, EducationLevel } from "@/lib/types";
+import { LIFE_EVENT_TEMPLATES, EXPENSE_LABELS, DEFAULT_CHILD_EDUCATION, LIFESTYLE_PRESETS, LIFESTYLE_EXPENSE_PRESETS, BUSINESS_PRESETS } from "@/lib/constants";
+import type { LifeEvent, ExpenseBreakdown, ChildEducation, EducationLevel, BusinessPlan } from "@/lib/types";
 
 // --- 投資利率プリセット ---
 const RETURN_PRESETS = [
@@ -303,6 +303,131 @@ export function WhatIfPanel() {
               </div>
             )}
           </div>
+
+          {/* === 独立経営プラン === */}
+          {events.some((e) => e.id === "independence") && (() => {
+            const bp = profile.businessPlan;
+            const [showBizDetail, setShowBizDetail] = useState(false);
+
+            // 現在の収益概算(プランがある場合)
+            const bizSummary = bp ? (() => {
+              const monthlySales = (bp.customerPrice / 10000) * bp.dailyCustomers * bp.workDaysPerMonth;
+              const monthlyCost = bp.monthlyRent + bp.staffCount * bp.staffMonthlyCost + bp.otherMonthlyCost;
+              const monthlyProfit = monthlySales - monthlyCost;
+              return { sales: monthlySales, cost: monthlyCost, profit: monthlyProfit };
+            })() : null;
+
+            return (
+              <div className="space-y-3 rounded-xl bg-amber-50 p-3 border border-amber-200">
+                <p className="text-xs font-medium text-amber-800">🏪 独立後の経営プラン</p>
+
+                {/* プリセット選択 */}
+                <div className="grid grid-cols-3 gap-1.5">
+                  {BUSINESS_PRESETS.map((preset) => (
+                    <button key={preset.id} type="button"
+                      onClick={() => updateProfile({ businessPlan: { ...preset.plan } })}
+                      className={`rounded-lg p-2 text-center transition-all ${
+                        bp?.style === preset.id
+                          ? "bg-amber-200 border-2 border-amber-500"
+                          : "bg-white border border-amber-200 hover:border-amber-400"
+                      }`}>
+                      <span className="text-lg">{preset.emoji}</span>
+                      <p className="text-[10px] font-medium">{preset.label}</p>
+                    </button>
+                  ))}
+                </div>
+
+                {bp && bizSummary && (
+                  <>
+                    {/* 収益サマリー */}
+                    <div className="bg-white rounded-lg p-2 space-y-1">
+                      <div className="flex justify-between text-xs">
+                        <span className="text-gray-500">月売上</span>
+                        <span className="font-bold text-amber-700">{bizSummary.sales.toFixed(1)}万</span>
+                      </div>
+                      <div className="flex justify-between text-xs">
+                        <span className="text-gray-500">月経費</span>
+                        <span className="text-red-500">-{bizSummary.cost.toFixed(1)}万</span>
+                      </div>
+                      <div className="border-t border-amber-100 pt-1 flex justify-between text-xs">
+                        <span className="text-gray-600 font-medium">月の手残り</span>
+                        <span className={`font-bold ${bizSummary.profit >= 0 ? 'text-emerald-600' : 'text-red-500'}`}>
+                          {bizSummary.profit.toFixed(1)}万 (年{Math.round(bizSummary.profit * 12)}万)
+                        </span>
+                      </div>
+                      <p className="text-[10px] text-gray-400">※ 1年目は50%、2年目は80%で計算。3年目以降は年{bp.growthRate}%成長</p>
+                    </div>
+
+                    {/* 詳細調整 */}
+                    <button type="button" onClick={() => setShowBizDetail(!showBizDetail)}
+                      className="w-full text-[10px] text-amber-600 hover:text-amber-800">
+                      {showBizDetail ? "詳細を閉じる ▲" : "数字を調整する ▼"}
+                    </button>
+                    {showBizDetail && (
+                      <div className="space-y-2 animate-in fade-in duration-200">
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs w-24 shrink-0">💇 客単価</span>
+                          <Slider min={2000} max={15000} step={500} value={[bp.customerPrice]}
+                            onValueChange={(v) => updateProfile({ businessPlan: { ...bp, customerPrice: Array.isArray(v) ? v[0] : v } })} />
+                          <span className="text-xs font-medium tabular-nums w-16 text-right">{bp.customerPrice.toLocaleString()}円</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs w-24 shrink-0">👤 1日の客数</span>
+                          <Slider min={1} max={30} step={1} value={[bp.dailyCustomers]}
+                            onValueChange={(v) => updateProfile({ businessPlan: { ...bp, dailyCustomers: Array.isArray(v) ? v[0] : v } })} />
+                          <span className="text-xs font-medium tabular-nums w-16 text-right">{bp.dailyCustomers}人</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs w-24 shrink-0">📅 月営業日数</span>
+                          <Slider min={15} max={30} step={1} value={[bp.workDaysPerMonth]}
+                            onValueChange={(v) => updateProfile({ businessPlan: { ...bp, workDaysPerMonth: Array.isArray(v) ? v[0] : v } })} />
+                          <span className="text-xs font-medium tabular-nums w-16 text-right">{bp.workDaysPerMonth}日</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs w-24 shrink-0">🏠 店舗家賃</span>
+                          <Slider min={5} max={50} step={1} value={[bp.monthlyRent]}
+                            onValueChange={(v) => updateProfile({ businessPlan: { ...bp, monthlyRent: Array.isArray(v) ? v[0] : v } })} />
+                          <span className="text-xs font-medium tabular-nums w-16 text-right">{bp.monthlyRent}万</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs w-24 shrink-0">👥 スタッフ数</span>
+                          <Slider min={0} max={10} step={1} value={[bp.staffCount]}
+                            onValueChange={(v) => updateProfile({ businessPlan: { ...bp, staffCount: Array.isArray(v) ? v[0] : v } })} />
+                          <span className="text-xs font-medium tabular-nums w-16 text-right">{bp.staffCount}人</span>
+                        </div>
+                        {bp.staffCount > 0 && (
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs w-24 shrink-0">💰 1人の人件費</span>
+                            <Slider min={15} max={40} step={1} value={[bp.staffMonthlyCost]}
+                              onValueChange={(v) => updateProfile({ businessPlan: { ...bp, staffMonthlyCost: Array.isArray(v) ? v[0] : v } })} />
+                            <span className="text-xs font-medium tabular-nums w-16 text-right">{bp.staffMonthlyCost}万</span>
+                          </div>
+                        )}
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs w-24 shrink-0">📦 その他経費</span>
+                          <Slider min={3} max={30} step={1} value={[bp.otherMonthlyCost]}
+                            onValueChange={(v) => updateProfile({ businessPlan: { ...bp, otherMonthlyCost: Array.isArray(v) ? v[0] : v } })} />
+                          <span className="text-xs font-medium tabular-nums w-16 text-right">{bp.otherMonthlyCost}万</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs w-24 shrink-0">📈 年間成長率</span>
+                          <Slider min={0} max={10} step={1} value={[bp.growthRate]}
+                            onValueChange={(v) => updateProfile({ businessPlan: { ...bp, growthRate: Array.isArray(v) ? v[0] : v } })} />
+                          <span className="text-xs font-medium tabular-nums w-16 text-right">{bp.growthRate}%</span>
+                        </div>
+                      </div>
+                    )}
+                  </>
+                )}
+
+                {!bp && (
+                  <p className="text-[10px] text-amber-600">
+                    上のプランを選ぶと、独立後の収入がリアルに計算されるよ
+                  </p>
+                )}
+              </div>
+            );
+          })()}
 
           {/* === 支出 === */}
           <div className="space-y-3 rounded-xl bg-gray-50 p-3">

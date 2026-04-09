@@ -111,6 +111,35 @@ export const LIFE_EVENT_TEMPLATES: LifeEventTemplate[] = [
   },
 ];
 
+// 独立経営プリセット
+import type { BusinessPlan } from "./types";
+export const BUSINESS_PRESETS: { id: string; label: string; emoji: string; description: string; plan: BusinessPlan }[] = [
+  {
+    id: "solo", label: "1人経営", emoji: "🏪",
+    description: "自分だけで回す。固定費低め、収入に天井あり",
+    plan: {
+      style: "solo", customerPrice: 5000, dailyCustomers: 6, workDaysPerMonth: 24,
+      monthlyRent: 15, staffCount: 0, staffMonthlyCost: 0, otherMonthlyCost: 8, growthRate: 2,
+    },
+  },
+  {
+    id: "small_team", label: "スタッフ雇用", emoji: "👥",
+    description: "1-2人雇用。売上↑ 人件費あり、自分の時間も確保",
+    plan: {
+      style: "small_team", customerPrice: 5500, dailyCustomers: 12, workDaysPerMonth: 25,
+      monthlyRent: 20, staffCount: 1, staffMonthlyCost: 25, otherMonthlyCost: 12, growthRate: 3,
+    },
+  },
+  {
+    id: "multi_shop", label: "多店舗展開", emoji: "🏢",
+    description: "2店舗以上。リスク大、軌道に乗ればリターン大",
+    plan: {
+      style: "multi_shop", customerPrice: 5500, dailyCustomers: 25, workDaysPerMonth: 26,
+      monthlyRent: 40, staffCount: 4, staffMonthlyCost: 25, otherMonthlyCost: 20, growthRate: 5,
+    },
+  },
+];
+
 export const EFFECTIVE_TAX_RATE = 0.2;
 export const PENSION_MONTHLY = 15; // 万円
 export const RETIREMENT_AGE = 65;
